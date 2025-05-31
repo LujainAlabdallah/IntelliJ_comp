@@ -5,12 +5,18 @@ import AST.*;
 import antlr.AngularParser;
 import antlr.AngularParserBaseVisitor;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import symboltable.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class ClassMemberVisitor extends AngularParserBaseVisitor<classMember> {
+    private SymbolTable symbolTable;
+
+    public ClassMemberVisitor(SymbolTable symbolTable) {
+        this.symbolTable = symbolTable;
+    }
     @Override
     public classMember visitMETHOD2(AngularParser.METHOD2Context ctx) {
         return visit(ctx.method());
@@ -18,22 +24,21 @@ public class ClassMemberVisitor extends AngularParserBaseVisitor<classMember> {
 
     @Override
     public classMember visitMethod(AngularParser.MethodContext ctx) {
-        List<String> nameParts = new ArrayList<>();
-        StatmentVisitor statmentVisitor = new StatmentVisitor();
-        for (TerminalNode id : ctx.IDENTIFIER()) {
-            nameParts.add(id.getText());
-        }
+        List<String> nameParts = ctx.IDENTIFIER().stream()
+                .map(TerminalNode::getText)
+                .collect(Collectors.toList());
+
+        String methodName = nameParts.isEmpty() ? "anonymous" : nameParts.get(0);
+        symbolTable.add(methodName, "method");
+
+        StatmentVisitor statmentVisitor = new StatmentVisitor(symbolTable);
         List<Statement> statements = new ArrayList<>();
-        method meth = new method();
-        for (int i = 0; i < ctx.statement().size();i++) {
-            System.out.println(ctx.statement().get(i));
-            statmentVisitor.visit(ctx.statement().get(i));
+        for (int i = 0; i < ctx.statement().size(); i++) {
             Statement stmt = statmentVisitor.visit(ctx.statement(i));
             statements.add(stmt);
         }
-        meth.setStatements(statements);
-        return new METHOD2(nameParts, statements);
 
+        return new METHOD2(nameParts, statements);
     }
 
     @Override
@@ -44,18 +49,16 @@ public class ClassMemberVisitor extends AngularParserBaseVisitor<classMember> {
     @Override
     public classMember visitVif(AngularParser.VifContext ctx) {
         ExpressionCm condition = (ExpressionCm) visitExpression(ctx.expression());
-        StatmentVisitor statmentVisitor = new StatmentVisitor();
 
-        // if-body
+        StatmentVisitor statmentVisitor = new StatmentVisitor(symbolTable);
         List<AST.Statement> ifBody = new ArrayList<>();
-        for (int i = 0 ; i < ctx.statement().size();i++) {
+        for (int i = 0; i < ctx.statement().size(); i++) {
             ifBody.add(statmentVisitor.visit(ctx.statement().get(i)));
         }
 
-        // else-body (اختياري)
         List<AST.Statement> elseBody = new ArrayList<>();
         if (ctx.ELSE_CONDITION() != null && ctx.statement().size() > 1) {
-            for (int i = 0 ; i < ctx.statement().size();i++) {
+            for (int i = 0; i < ctx.statement().size(); i++) {
                 elseBody.add(statmentVisitor.visit(ctx.statement().get(i)));
             }
         }
@@ -75,7 +78,7 @@ public class ClassMemberVisitor extends AngularParserBaseVisitor<classMember> {
         assignmentCm update = (assignmentCm) visitAssignment(ctx.assignment(1));
 
         List<Statement> body = new ArrayList<>();
-        StatmentVisitor statmentVisitor = new StatmentVisitor();
+        StatmentVisitor statmentVisitor = new StatmentVisitor(symbolTable);
         for (int i = 0; i < ctx.statement().size(); i++) {
             Statement stmt = statmentVisitor.visit(ctx.statement().get(i));
             body.add(stmt);
@@ -83,6 +86,7 @@ public class ClassMemberVisitor extends AngularParserBaseVisitor<classMember> {
 
         return new LOOPSTATEMENT2(init, condition, update, body);
     }
+
 
     @Override
     public classMember visitCONSTRUCTOR2(AngularParser.CONSTRUCTOR2Context ctx) {
@@ -96,7 +100,12 @@ public class ClassMemberVisitor extends AngularParserBaseVisitor<classMember> {
         List<String> identifiers = ctx.IDENTIFIER().stream()
                 .map(id -> id.getText())
                 .collect(Collectors.toList());
-        return new inputProperty(boolValue,identifiers);
+
+        for (String id : identifiers) {
+            symbolTable.add(id, "input_property", String.valueOf(boolValue));
+        }
+
+        return new inputProperty(boolValue, identifiers);
     }
 
     @Override
@@ -106,13 +115,15 @@ public class ClassMemberVisitor extends AngularParserBaseVisitor<classMember> {
 
     @Override
     public classMember visitOutputProperty(AngularParser.OutputPropertyContext ctx) {
-        // استخراج الاسم
         List<String> identifiers = ctx.IDENTIFIER().stream()
-                .map(id -> id.getText())
+                .map(TerminalNode::getText)
                 .collect(Collectors.toList());
 
-        // النوع الداخلي (مثل "string" في EventEmitter<string>)
         String innerType = ctx.IDENTIFIER(ctx.IDENTIFIER().size() - 1).getText();
+
+        for (String id : identifiers) {
+            symbolTable.add(id, "output_property", innerType);
+        }
 
         return new outputProperty(identifiers, innerType);
     }
@@ -123,7 +134,58 @@ public class ClassMemberVisitor extends AngularParserBaseVisitor<classMember> {
     }
 
     @Override
+    public classMember visitASSI(AngularParser.ASSIContext ctx) {
+return visitAssignment(ctx.assignment());
+    }
+
+    @Override
+    public classMember visitAssignment(AngularParser.AssignmentContext ctx) {
+        List<String> target = new ArrayList<>();
+        AST.ExpressionCm value = null;
+        List<AnyTypeCm> anytypes = new ArrayList<>();
+
+        for (TerminalNode id : ctx.IDENTIFIER()) {
+            String varName = id.getText();
+            target.add(varName);
+        }
+
+        if (ctx.expression() != null) {
+            value = (ExpressionCm) visit(ctx.expression());
+
+        }
+
+        if (ctx.any_type() != null && !ctx.any_type().isEmpty()) {
+            for (int i = 0; i < ctx.any_type().size(); i++) {
+                anytypes.add((AnyTypeCm) visit(ctx.any_type().get(i)));
+            }
+        }
+        symbolTable.add(
+                String.valueOf(target),
+                "variable",
+                String.valueOf(value != null ? value : anytypes)
+        );
+        return new ASSI(target, value, anytypes);
+    }
+
+    @Override
     public classMember visitExpression(AngularParser.ExpressionContext ctx) {
+        if (!ctx.IDENTIFIER().isEmpty()) {
+            for (TerminalNode id : ctx.IDENTIFIER()) {
+                symbolTable.add(id.getText(), "expression_var");
+            }
+        }
+
+        if (ctx.STRING() != null) {
+            symbolTable.add(ctx.STRING().getText(), "string_literal", ctx.STRING().getText());
+        }
+
+        if (ctx.BOOLEAN() != null) {
+            symbolTable.add(ctx.BOOLEAN().getText(), "boolean_literal", ctx.BOOLEAN().getText());
+        }
+
+        if (ctx.NULL() != null) {
+            symbolTable.add("null", "null_literal");
+        }
         if (ctx.STRING() != null) {
             return new ExpressionCm(ctx.STRING().getText(), true);
         }
@@ -176,23 +238,23 @@ public class ClassMemberVisitor extends AngularParserBaseVisitor<classMember> {
     @Override
     public classMember visitConstructor(AngularParser.ConstructorContext ctx) {
         CONSTRUCTOR2 constructor = new CONSTRUCTOR2();
+        symbolTable.add("constructor", "constructor");
 
-        // المعطيات
+        List<String> params = new ArrayList<>();
         if (ctx.IDENTIFIER() != null) {
-            List<String> params = new ArrayList<>();
             for (TerminalNode id : ctx.IDENTIFIER()) {
-                params.add(id.getText());
+                String name = id.getText();
+                params.add(name);
+               symbolTable.add("constructor",name, "parameter");
             }
-            constructor.setParameters(params);
-        } else {
-            constructor.setParameters(new ArrayList<>());
         }
+        constructor.setParameters(params);
 
-        // استدعاءات الدوال داخل البلوك
         constructor.methodCall2s = new ArrayList<>();
         for (AngularParser.MethodCallContext mcCtx : ctx.methodCall()) {
-            methodcallCm methodCall = (methodcallCm) visitMethodCall(mcCtx); // تأكد أن لديك visitMethodCall2
+            methodcallCm methodCall = (methodcallCm) visitMethodCall(mcCtx);
             constructor.addmethodcalls(methodCall);
+            symbolTable.add("constructor","constructor", String.valueOf(methodCall));
         }
 
         return constructor;

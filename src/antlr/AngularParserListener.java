@@ -1,4 +1,4 @@
-// Generated from D:/compilller/compilller/src/antlr/AngularParser.g4 by ANTLR 4.13.2
+// Generated from C:/Users/muzaic/Desktop/comp/src/antlr/AngularParser.g4 by ANTLR 4.13.2
 package antlr;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
@@ -871,6 +871,18 @@ public interface AngularParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitCONSTRUCTOR2(AngularParser.CONSTRUCTOR2Context ctx);
+	/**
+	 * Enter a parse tree produced by the {@code ASSI}
+	 * labeled alternative in {@link AngularParser#classMember}.
+	 * @param ctx the parse tree
+	 */
+	void enterASSI(AngularParser.ASSIContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code ASSI}
+	 * labeled alternative in {@link AngularParser#classMember}.
+	 * @param ctx the parse tree
+	 */
+	void exitASSI(AngularParser.ASSIContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link AngularParser#constructor}.
 	 * @param ctx the parse tree

@@ -3,32 +3,40 @@ package Visitor;
 import AST.*;
 import antlr.AngularParser;
 import antlr.AngularParserBaseVisitor;
+import symboltable.SymbolTable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class MetadataVisitor extends AngularParserBaseVisitor<ComponentMetadata> {
+    private SymbolTable symbolTable;
 
+    public MetadataVisitor(SymbolTable symbolTable) {
+        this.symbolTable = symbolTable;
+    }
     @Override
     public ComponentMetadata visitSELECTOR1(AngularParser.SELECTOR1Context ctx) {
         String value = ctx.STRING().getText().replace("\"", "");
+        symbolTable.add("selector", "component_metadata", value);
         return new SELECTOR1(value);
     }
 
     @Override
     public ComponentMetadata visitSTANDLONE(AngularParser.STANDLONEContext ctx) {
         boolean value = Boolean.parseBoolean(ctx.BOOLEAN().getText());
+        symbolTable.add("standalone", "component_metadata", String.valueOf(value));
         return new StandaloneMetadata(value);
     }
 
     @Override
     public ComponentMetadata visitTEMPLATEURL(AngularParser.TEMPLATEURLContext ctx) {
         HtmlValue htmlVal;
-        ElementVisitor elementVisitor = new ElementVisitor();
+        ElementVisitor elementVisitor = new ElementVisitor(symbolTable);
 
         if (ctx.html().STRING() != null) {
             String path = ctx.html().STRING().getText().replace("\"", "");
+            symbolTable.add("templateUrl", "string_path", path);
             htmlVal = new HtmlString(path);
             System.out.println("HTML as string path: " + path);
         } else {
@@ -54,8 +62,10 @@ public class MetadataVisitor extends AngularParserBaseVisitor<ComponentMetadata>
     @Override
     public ComponentMetadata visitIMPORTS(AngularParser.IMPORTSContext ctx) {
         List<String> imports = new ArrayList<>();
-        ctx.IDENTIFIER().forEach(id -> imports.add(id.getText()));
-        return new ImportsMetadata(imports);
+        ctx.IDENTIFIER().forEach(id -> {
+            imports.add(id.getText());
+            symbolTable.add(id.getText(), "import");
+        });        return new ImportsMetadata(imports);
     }
 
     @Override
@@ -63,6 +73,7 @@ public class MetadataVisitor extends AngularParserBaseVisitor<ComponentMetadata>
         StyleValue styleVal;
         if (ctx.style().STRING() != null) {
             String path = ctx.style().STRING().getText().replace("\"", "");
+            symbolTable.add("styleUrl", "string_path", path);
             styleVal = new StyleString(path);
         } else {
             List<Rule> rules = new ArrayList<>();
@@ -91,6 +102,9 @@ public class MetadataVisitor extends AngularParserBaseVisitor<ComponentMetadata>
         List<String> identifiers = ctx.IDENTIFIER().stream()
                 .map(id -> id.getText())
                 .collect(Collectors.toList());
+        for (String id : identifiers) {
+            symbolTable.add(id, "css_selector");
+        }
 
         return new selector(identifiers);
     }
@@ -112,7 +126,9 @@ public class MetadataVisitor extends AngularParserBaseVisitor<ComponentMetadata>
               //  System.err.println("Null returned for any_type: " + typeCtx.getText());
             }
         }
-
+        for (String id : identifiers) {
+            symbolTable.add(id, "css_declaration");
+        }
         // إرجاع كائن يمثل declaration
         return new Declaration(identifiers, value);
     }
@@ -120,22 +136,27 @@ public class MetadataVisitor extends AngularParserBaseVisitor<ComponentMetadata>
     @Override
     public ComponentMetadata visitAny_type(AngularParser.Any_typeContext ctx) {
         if (ctx.LENGTH() != null) {
+            symbolTable.add(ctx.getText(), "length_value");
             return new AnyType(AnyType.Type.LENGTH, ctx.getText());
         } else if (ctx.COLOR() != null) {
+            symbolTable.add(ctx.getText(), "color_value");
             return new AnyType(AnyType.Type.COLOR, ctx.getText());
         } else if (ctx.IDENTIFIER() != null) {
+            symbolTable.add(ctx.getText(), "identifier_value");
             return new AnyType(AnyType.Type.IDENTIFIER, ctx.getText());
         } else if (ctx.NUMBER() != null) {
+            symbolTable.add(ctx.getText(), "number_value");
             return new AnyType(AnyType.Type.NUMBER, ctx.getText());
         } else if (ctx.STRING() != null) {
+            symbolTable.add(ctx.getText(), "string_value");
             return new AnyType(AnyType.Type.STRING, ctx.getText());
         } else if (ctx.ANY() != null) {
+            symbolTable.add(ctx.getText(), "any_type");
             return new AnyType(AnyType.Type.ANY, ctx.getText());
         } else if (ctx.product() != null || ctx.LEFT_BRACKET() != null) {
             List<Product> products = new ArrayList<>();
             for (AngularParser.ProductContext productCtx : ctx.product()) {
-                ComponentMetadata p =  visitProduct(productCtx);
-               // products.add(p);
+                ComponentMetadata p = visitProduct(productCtx);
             }
             return new AnyType(AnyType.Type.ARRAY, products);
         }

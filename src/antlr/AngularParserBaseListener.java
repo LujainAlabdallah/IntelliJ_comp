@@ -1,4 +1,4 @@
-// Generated from D:/compilller/compilller/src/antlr/AngularParser.g4 by ANTLR 4.13.2
+// Generated from C:/Users/muzaic/Desktop/comp/src/antlr/AngularParser.g4 by ANTLR 4.13.2
 package antlr;
 
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -948,6 +948,18 @@ public class AngularParserBaseListener implements AngularParserListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitCONSTRUCTOR2(AngularParser.CONSTRUCTOR2Context ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterASSI(AngularParser.ASSIContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitASSI(AngularParser.ASSIContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

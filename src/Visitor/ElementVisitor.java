@@ -3,6 +3,7 @@ package Visitor;
 import AST.*;
 import antlr.AngularParser;
 import antlr.AngularParserBaseVisitor;
+import symboltable.*;
 
 import java.util.ArrayList;
 
@@ -10,12 +11,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class ElementVisitor extends AngularParserBaseVisitor<Element> {
+    private SymbolTable symbolTable;
 
+    public ElementVisitor(SymbolTable symbolTable) {
+        this.symbolTable = symbolTable;
+    }
 
     @Override
     public Element visitAttributes(AngularParser.AttributesContext ctx) {
         List<Attribute> attributes = new ArrayList<>();
-        AttributeVisitor attributeVisitor = new AttributeVisitor();
+        AttributeVisitor attributeVisitor = new AttributeVisitor(symbolTable);
         Attributes attributes1 = new Attributes();
         for (AngularParser.AttributeContext attrCtx : ctx.attribute()) {
             Attribute attribute = attributeVisitor.visit(attrCtx);
@@ -35,6 +40,7 @@ public class ElementVisitor extends AngularParserBaseVisitor<Element> {
     @Override
     public Element visitHeaderElement(AngularParser.HeaderElementContext ctx) {
         String expr = ctx.interpolation().getText();
+        symbolTable.add("header_expr", "interpolation", expr);
         return new headerElement(expr);
     }
 
@@ -49,12 +55,14 @@ public class ElementVisitor extends AngularParserBaseVisitor<Element> {
         Attributes attrs = null;
         if (ctx.image().attributes() != null) {
             attrs = (Attributes) visitAttributes(ctx.image().attributes());
-
+            symbolTable.add("image_attr", attrs.toString());
 
             if (attrs != null) {
             //    System.out.println("Visited attributes:");
                 for (Attribute attr : attrs.getAttributes()) {
-              //      System.out.println(attr);
+                 //  symbolTable.add(attr.getName(), "image_attr", attr.getValue());
+
+                    //      System.out.println(attr);
                 }
             } else {
                 System.err.println("visitAttributes returned null.");
@@ -78,6 +86,9 @@ public class ElementVisitor extends AngularParserBaseVisitor<Element> {
             List<String> identifiers = ctx.IDENTIFIER().stream()
                     .map(id -> id.getText())
                     .collect(Collectors.toList());
+            for (String id : identifiers) {
+                symbolTable.add(id, "component_identifier");
+            }
             return new CompElement(identifiers);
         }
     }
@@ -88,12 +99,16 @@ public class ElementVisitor extends AngularParserBaseVisitor<Element> {
             List<String> identifiers = ctx.IDENTIFIER().stream()
                     .map(id -> id.getText())
                     .collect(Collectors.toList());
+            for (String id : identifiers) {
+                symbolTable.add(id, "component_tag");
+            }
             CompElement comp = (CompElement) visitCompElement(ctx.compElement());
             return new componentElement(identifiers, comp);
         } else {
             // Case: NGFOR DIV
             String ngForValue = ctx.STRING().getText();
-            ElementContantVisitor elementContantVisitor = new ElementContantVisitor();
+            symbolTable.add("ngFor", "directive", ngForValue);
+            ElementContantVisitor elementContantVisitor = new ElementContantVisitor(symbolTable);
             ElementContent content = elementContantVisitor.visit(ctx.elementContent());
             return new componentElement(ngForValue, content);
         }
@@ -110,6 +125,7 @@ public class ElementVisitor extends AngularParserBaseVisitor<Element> {
         if (ctx.button().attributes() != null)
             attrs = (List<Attribute>) visitAttributes(ctx.button().attributes());
         String label = ctx.STRING().getText().replace("\"", "");
+        symbolTable.add("button", "label", label);
         return new buttonElement((Attributes) attrs, label);
     }
 
@@ -122,6 +138,7 @@ public class ElementVisitor extends AngularParserBaseVisitor<Element> {
     @Override
     public Element visitParagraphElement(AngularParser.ParagraphElementContext ctx) {
         String expr = ctx.interpolation().getText();
+        symbolTable.add("paragraph_expr", "interpolation", expr);
         return new paragraphElement(expr);
     }
     @Override
@@ -132,8 +149,9 @@ public class ElementVisitor extends AngularParserBaseVisitor<Element> {
     @Override
     public Element visitNgForElement(AngularParser.NgForElementContext ctx) {
         String expr = ctx.STRING().getText().replace("\"", "");
+        symbolTable.add("ngFor", "directive", expr);
         ElementContent content = null;
-        ElementContantVisitor elementContantVisitor = new ElementContantVisitor();
+        ElementContantVisitor elementContantVisitor = new ElementContantVisitor(symbolTable);
         if (ctx.elementContent() != null) {
             if (ctx.STRING() != null) {
                 content = elementContantVisitor.visit(ctx.elementContent());
@@ -150,7 +168,7 @@ public class ElementVisitor extends AngularParserBaseVisitor<Element> {
     @Override
     public Element visitDiv(AngularParser.DivContext ctx) {
         if (ctx.attributes() != null) {
-            ElementContantVisitor elementContantVisitor = new ElementContantVisitor();
+            ElementContantVisitor elementContantVisitor = new ElementContantVisitor(symbolTable);
             Attributes attributes = (Attributes) visitAttributes(ctx.attributes());
             List<ElementContent> contentList = new ArrayList<>();
             for (int i = 0 ; i < ctx.elementContent().size();i++){
@@ -167,7 +185,7 @@ public class ElementVisitor extends AngularParserBaseVisitor<Element> {
         DivNode divNode = (DivNode) visitDiv(ctx.div());
 
         List<ProgramAll> children = new ArrayList<>();
-        ElementVisitor elementVisitor = new ElementVisitor();
+        ElementVisitor elementVisitor = new ElementVisitor(symbolTable);
                 for (int i = 0 ; i < ctx.element().size();i++){
                     children.add(elementVisitor.visit(ctx.element().get(i)));
                 }

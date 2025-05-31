@@ -1,4 +1,4 @@
-// Generated from D:/compilller/compilller/src/antlr/AngularParser.g4 by ANTLR 4.13.2
+// Generated from C:/Users/muzaic/Desktop/comp/src/antlr/AngularParser.g4 by ANTLR 4.13.2
 package antlr;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
@@ -520,6 +520,13 @@ public interface AngularParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitCONSTRUCTOR2(AngularParser.CONSTRUCTOR2Context ctx);
+	/**
+	 * Visit a parse tree produced by the {@code ASSI}
+	 * labeled alternative in {@link AngularParser#classMember}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitASSI(AngularParser.ASSIContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link AngularParser#constructor}.
 	 * @param ctx the parse tree

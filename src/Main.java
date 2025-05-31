@@ -14,16 +14,16 @@ import static org.antlr.v4.runtime.CharStreams.fromFileName;
 public class Main {
     public static void main(String[] args) {
         try {
-            String path = "C://Users//muzaic//Desktop//IntelliJ_comp//src//test//test.txt";
+            String path = "C://Users//muzaic//Desktop//comp//src//test//test.txt";
             CharStream input = fromFileName(path);
             AngularLexer lexer = new AngularLexer(input);
             CommonTokenStream token = new CommonTokenStream(lexer);
-
             AngularParser parser = new AngularParser(token);
             ParseTree tree = parser.program();
             ProVisitor ProVisitor = new ProVisitor();
             Program program = ProVisitor.visit(tree);
             System.out.println(program);
+            ProVisitor.getProgramVisitor().getSymbolTable().print();
         } catch (IOException e) {
             e.printStackTrace();
         }

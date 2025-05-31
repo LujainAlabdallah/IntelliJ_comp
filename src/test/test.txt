@@ -1,12 +1,7 @@
 import { Componentt} from '@angular/core';
 import { ProductComponent } from '../../components/product/product.component';
 import { ProductDetailsComponent } from '../../components/product-details/product-details.component';
-
-
-
 import { CommonModule } from '@angular/common';
-
-
 
 @Component({
   selector: 'app-home',
@@ -15,7 +10,7 @@ import { CommonModule } from '@angular/common';
   templateUrl:
   <div class="card">
   <h1> {{ product!.name??"" }} </h1>
-  <img src="https://cdn-icons-png.flaticon.com/512/962/962669.png" alt="Denim Jeans" style="width: 100%" />
+
   <p>{{product!.details??""}}</p>
 </div>
   ,
@@ -31,4 +26,5 @@ import { CommonModule } from '@angular/common';
 })
 
 
-laith = 77 ;
+
+

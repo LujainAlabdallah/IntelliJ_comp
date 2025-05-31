@@ -1,4 +1,4 @@
-// Generated from D:/compilller/compilller/src/antlr/AngularParser.g4 by ANTLR 4.13.2
+// Generated from C:/Users/muzaic/Desktop/comp/src/antlr/AngularParser.g4 by ANTLR 4.13.2
 package antlr;
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
 
@@ -558,6 +558,13 @@ public class AngularParserBaseVisitor<T> extends AbstractParseTreeVisitor<T> imp
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
 	@Override public T visitCONSTRUCTOR2(AngularParser.CONSTRUCTOR2Context ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitASSI(AngularParser.ASSIContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
