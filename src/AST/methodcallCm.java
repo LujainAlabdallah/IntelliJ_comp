@@ -2,13 +2,13 @@ package AST;
 
 import java.util.List;
 
-public class MethodCall2 extends Statement {
+public class methodcallCm extends classMember{
     public String objectName;
     public String methodName;
-    public List<ExpressionSt> arguments;
-    public List<ANYTYPE2> anytype;
+    public List<ExpressionCm> arguments;
+    public List<AnyType1> anytype;
 
-    public MethodCall2(String objectName, String methodName, List<ExpressionSt> arguments, List<ANYTYPE2> anytype) {
+    public methodcallCm(String objectName, String methodName, List<ExpressionCm> arguments,List<AnyType1> anytype) {
         this.objectName = objectName;
         this.methodName = methodName;
         this.arguments = arguments;
@@ -17,7 +17,7 @@ public class MethodCall2 extends Statement {
 
     @Override
     public String toString() {
-        return "MethodCall{" +
+        return "METHODCALL1{" +
                 "objectName='" + objectName + '\'' +
                 ", methodName='" + methodName + '\'' +
                 ", arguments=" + arguments +

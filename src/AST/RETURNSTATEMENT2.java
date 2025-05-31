@@ -1,9 +1,9 @@
 package AST;
 
 public class RETURNSTATEMENT2 extends Statement {
-    public Expression value;
+    public ExpressionSt value;
 
-    public RETURNSTATEMENT2(Expression value) {
+    public RETURNSTATEMENT2(ExpressionSt value) {
         this.value = value;
     }
 

@@ -2,12 +2,12 @@ package AST;
 
 import java.util.List;
 
-public class Term extends Statement {
+public class TermCm extends classMember{
     public Factor left;
     public List<String> operators; // MULTIPLY أو DIVIDE
     public List<Factor> rights;
 
-    public Term(Factor left, List<String> operators, List<Factor> rights) {
+    public TermCm(Factor left, List<String> operators, List<Factor> rights) {
         this.left = left;
         this.operators = operators;
         this.rights = rights;
@@ -22,4 +22,3 @@ public class Term extends Statement {
         return sb.toString();
     }
 }
-

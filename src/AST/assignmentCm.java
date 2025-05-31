@@ -2,12 +2,12 @@ package AST;
 
 import java.util.List;
 
-public class ASSIGMENT2 extends Statement {
+public class assignmentCm extends classMember{
     public List<String> target;
-    public ExpressionSt value;
-    List<ANYTYPE2> anytype;
+    public ExpressionCm value;
+    List<AnyTypeCm> anytype;
 
-    public ASSIGMENT2(List<String> target, ExpressionSt value, List<ANYTYPE2> anytype) {
+    public assignmentCm(List<String> target, ExpressionCm value, List<AnyTypeCm> anytype) {
         this.target = target;
         this.value = value;
         this.anytype = anytype;
@@ -15,7 +15,7 @@ public class ASSIGMENT2 extends Statement {
 
     @Override
     public String toString() {
-        return "Assignment{" +
+        return "ASSIGMENT{" +
                 "target='" + target + '\'' +
                 ", value=" + value +
                 ", anyType=" + anytype +

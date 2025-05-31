@@ -1,6 +1,5 @@
 package AST;
 
-import java.beans.Statement;
 import java.util.List;
 
 public class METHOD2 extends classMember {

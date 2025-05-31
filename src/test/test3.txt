@@ -1,0 +1,5 @@
+products = [
+    { id: 1, name: 'Angular For Beginners', details: 'best course for Beginners ' },
+    { id: 2, name: 'Angular Core Deep Dive', details: '2222' },
+    { id: 3, name: 'Angular Forms In Depth', details: '3333' },
+  ];

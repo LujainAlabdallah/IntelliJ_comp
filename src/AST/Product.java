@@ -2,7 +2,7 @@ package AST;
 
 import java.util.List;
 
-public class Product extends ProgramAll{
+public class Product extends Statement{
     public List<String> firstKey;    // IDENTIFIER*
     public String firstValue;        // NUMBER*
     public List<String> secondKey;   // IDENTIFIER*

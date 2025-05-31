@@ -3,12 +3,12 @@ package AST;
 import java.util.List;
 
 public class LOOPSTATEMENT2 extends classMember {
-    public assignment init;
-    public Expression condition;
-    public assignment update;
+    public assignmentCm init;
+    public ExpressionCm condition;
+    public assignmentCm update;
     public List<Statement> body;
 
-    public LOOPSTATEMENT2(assignment init, Expression condition, assignment update, List<Statement> body) {
+    public LOOPSTATEMENT2(assignmentCm init, ExpressionCm condition, assignmentCm update, List<Statement> body) {
         this.init = init;
         this.condition = condition;
         this.update = update;
