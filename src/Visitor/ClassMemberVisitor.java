@@ -102,7 +102,7 @@ public class ClassMemberVisitor extends AngularParserBaseVisitor<classMember> {
                 .collect(Collectors.toList());
 
         for (String id : identifiers) {
-            symbolTable.add(id, "input_property", String.valueOf(boolValue));
+          //  symbolTable.add(id, "input_property", String.valueOf(boolValue));
         }
 
         return new inputProperty(boolValue, identifiers);
@@ -122,7 +122,7 @@ public class ClassMemberVisitor extends AngularParserBaseVisitor<classMember> {
         String innerType = ctx.IDENTIFIER(ctx.IDENTIFIER().size() - 1).getText();
 
         for (String id : identifiers) {
-            symbolTable.add(id, "output_property", innerType);
+         //   symbolTable.add(id, "output_property", innerType);
         }
 
         return new outputProperty(identifiers, innerType);

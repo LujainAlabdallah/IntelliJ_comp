@@ -23,14 +23,14 @@ public class AttributeVisitor extends AngularParserBaseVisitor<Attribute> {
     @Override
     public Attribute visitClassAttribute(AngularParser.ClassAttributeContext ctx) {
         String value = stripQuotes(ctx.STRING().getText());
-        symbolTable.add("class", "attribute", value);
+     //   symbolTable.add("class", "attribute", value);
         return new classAttribute(value);
     }
 
     @Override
     public Attribute visitSrcAttribute(AngularParser.SrcAttributeContext ctx) {
          String value = stripQuotes(ctx.STRING().getText());
-        symbolTable.add("src", "attribute", value);
+     //   symbolTable.add("src", "attribute", value);
         return new srcAttribute(value);
     }
 
@@ -42,7 +42,7 @@ public class AttributeVisitor extends AngularParserBaseVisitor<Attribute> {
     @Override
     public Attribute visitAltAttribute(AngularParser.AltAttributeContext ctx) {
         String value = stripQuotes(ctx.STRING().getText());
-        symbolTable.add("alt", "attribute", value);
+      //  symbolTable.add("alt", "attribute", value);
         return new altAttribute(value);
     }
 
@@ -54,7 +54,7 @@ public class AttributeVisitor extends AngularParserBaseVisitor<Attribute> {
     @Override
     public Attribute visitStyleAttribute(AngularParser.StyleAttributeContext ctx) {
         String value = stripQuotes(ctx.STRING().getText());
-        symbolTable.add("style", "attribute", value);
+      //  symbolTable.add("style", "attribute", value);
         return new styleAttribute(value);
     }
 
@@ -66,7 +66,7 @@ public class AttributeVisitor extends AngularParserBaseVisitor<Attribute> {
     @Override
     public Attribute visitClickAttribute(AngularParser.ClickAttributeContext ctx) {
         String value = stripQuotes(ctx.STRING().getText());
-        symbolTable.add("click", "event", value);
+     //   symbolTable.add("click", "event", value);
         return new clickAttribute(value);
     }
 
@@ -80,7 +80,7 @@ public class AttributeVisitor extends AngularParserBaseVisitor<Attribute> {
         List<String> ids = new ArrayList<>();
         for (var id : ctx.IDENTIFIER()) {
             ids.add(id.getText());
-            symbolTable.add(id.getText(), "property_binding");
+       //     symbolTable.add(id.getText(), "property_binding");
         }
         String value = stripQuotes(ctx.STRING().getText());
         return new propertyBinding(ids, value);
@@ -96,7 +96,7 @@ public class AttributeVisitor extends AngularParserBaseVisitor<Attribute> {
         List<String> ids = new ArrayList<>();
         for (var id : ctx.IDENTIFIER()) {
             ids.add(id.getText());
-            symbolTable.add(id.getText(), "event_binding");
+        //    symbolTable.add(id.getText(), "event_binding");
         }
         String value = stripQuotes(ctx.STRING().getText());
         return new eventBinding(ids, value);

@@ -2,6 +2,10 @@ package Visitor;
 
 import AST.*;
 import AST.Class;
+import SemanticError.ReservedWords;
+import SemanticError.SemanticErrorReporter;
+import SemanticError.UndefinedVariableChecker;
+import SemanticError.ValueConflictChecker;
 import antlr.AngularParser;
 import antlr.AngularParserBaseVisitor;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -14,6 +18,7 @@ import java.util.stream.Collectors;
 
 public class ProgramVisitor extends AngularParserBaseVisitor<ProgramAll> {
     private SymbolTable symbolTable = new SymbolTable();
+    private SemanticErrorReporter reporter;
 
     public SymbolTable getSymbolTable() {
         return symbolTable;
@@ -42,7 +47,7 @@ public class ProgramVisitor extends AngularParserBaseVisitor<ProgramAll> {
     @Override
     public ProgramAll visitImportStatements(AngularParser.ImportStatementsContext ctx) {
         String module = ctx.STRING().getText();
-        symbolTable.add(module,"ImportStatements");
+       //symbolTable.add(module,"ImportStatements");
         return new ImportStatement(module);
     }
 
@@ -234,13 +239,29 @@ public class ProgramVisitor extends AngularParserBaseVisitor<ProgramAll> {
                 anytypes.add((AnyType) visit(ctx.any_type().get(i)));
             }
         }
-        symbolTable.add(
-                String.valueOf(target),
-                "variable",
-                String.valueOf(value != null ? value : anytypes)
-        );
+
+        for (TerminalNode id : ctx.IDENTIFIER()) {
+            String varName = id.getText();
+
+            UndefinedVariableChecker undefinedVariableChecker = new UndefinedVariableChecker(symbolTable);
+            ValueConflictChecker conflictChecker = new ValueConflictChecker(symbolTable);
+            ReservedWords reservedWords = new ReservedWords();
+            String newValue = String.valueOf(value != null ? value : anytypes);
+            if (!reservedWords.isReserved(varName)) {
+                // إذا لم يكن المتغير undefined
+                if (!undefinedVariableChecker.check(varName)) {
+                    // تحقق من وجود تعارض بالقيمة
+                    if (!conflictChecker.check(varName, newValue)) {
+                        symbolTable.add(varName, "variable", newValue);
+                    }
+                }
+            }
+        }
+
         return new assignment(target, value, anytypes);
     }
+
+
 
     @Override
     public ProgramAll visitLOOPSTATEMENT1(AngularParser.LOOPSTATEMENT1Context ctx) {
@@ -332,17 +353,25 @@ public class ProgramVisitor extends AngularParserBaseVisitor<ProgramAll> {
         } else if (ctx.COLOR() != null) {
             symbolTable.add("anyType.COLOR", String.valueOf(AnyType.Type.COLOR),ctx.getText());
             return new AnyType(AnyType.Type.COLOR, ctx.getText());
-        } else if (ctx.IDENTIFIER() != null) {
-            symbolTable.add("anyType.IDENTIFIER", String.valueOf(AnyType.Type.IDENTIFIER),ctx.getText());
-            return new AnyType(AnyType.Type.IDENTIFIER, ctx.getText());
+        } else if (!ctx.IDENTIFIER().isEmpty()) {
+            ReservedWords reservedWords = new ReservedWords();
+
+            String name = ctx.IDENTIFIER(0).getText();
+            String value = (ctx.IDENTIFIER().size() > 1) ? ctx.IDENTIFIER(1).getText() : "anyType"; // النوع مثل BOOLEAN
+if (!reservedWords.isReserved(name)){
+
+            symbolTable.add(name, "Anytype", value);}
+            return new AnyType(AnyType.Type.IDENTIFIER, name);
+         //   symbolTable.add(ctx.IDENTIFIER().getText(),"anyType", String.valueOf(ctx.IDENTIFIER().getText()));
+           // return new AnyType(AnyType.Type.IDENTIFIER, ctx.getText());
         } else if (ctx.NUMBER() != null) {
-            symbolTable.add("anyType.NUMBER", String.valueOf(AnyType.Type.NUMBER),ctx.getText());
+            symbolTable.add("anyType.NUMBER", String.valueOf(AnyType.Type.NUMBER), String.valueOf(AnyType.Type.NUMBER));
             return new AnyType(AnyType.Type.NUMBER, ctx.getText());
         } else if (ctx.STRING() != null) {
             symbolTable.add("anyType.STRING", String.valueOf(AnyType.Type.STRING),ctx.getText());
             return new AnyType(AnyType.Type.STRING, ctx.getText());
         } else if (ctx.ANY() != null) {
-            symbolTable.add("anyType.ANY", String.valueOf(AnyType.Type.ANY),ctx.getText());
+         //   symbolTable.add("anyType.ANY", String.valueOf(AnyType.Type.ANY),ctx.getText());
             return new AnyType(AnyType.Type.ANY, ctx.getText());
         } else if (ctx.product() != null || ctx.LEFT_BRACKET() != null) {
             List<Product> products = new ArrayList<>();
@@ -451,15 +480,15 @@ public class ProgramVisitor extends AngularParserBaseVisitor<ProgramAll> {
     public ProgramAll visitExpression(AngularParser.ExpressionContext ctx) {
         if (!ctx.IDENTIFIER().isEmpty()) {
             for (TerminalNode id : ctx.IDENTIFIER()) {
-                symbolTable.add(id.getText(), "expression_var");
+             //   symbolTable.add(id.getText(), "expression_var");
             }
         }
         if (ctx.STRING() != null) {
-            symbolTable.add(ctx.STRING().getText(), "string_literal", ctx.STRING().getText());
+      //      symbolTable.add(ctx.STRING().getText(), "string_literal", ctx.STRING().getText());
         }
 
         if (ctx.BOOLEAN() != null) {
-            symbolTable.add(ctx.BOOLEAN().getText(), "boolean_literal", ctx.BOOLEAN().getText());
+            //    symbolTable.add(ctx.BOOLEAN().getText(), "boolean_literal", ctx.BOOLEAN().getText());
         }
 
         if (ctx.NULL() != null) {

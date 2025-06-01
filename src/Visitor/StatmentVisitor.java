@@ -27,24 +27,20 @@ public class StatmentVisitor extends AngularParserBaseVisitor<Statement> {
 
     @Override
     public Statement visitMethodCall(AngularParser.MethodCallContext ctx) {
-        String objectName = "this"; // بما أن البداية THIS_KEYWORD
+        String objectName = "this";
         String methodName = "";
         List<ExpressionSt> arguments = new ArrayList<>();
         List<ANYTYPE2> anytypes = new ArrayList<>();
 
-        // نميز بين النوعين باستخدام وجود LEFT_PAREN (أي استدعاء دالة)
         if (ctx.LEFT_PAREN() != null) {
-            // النوع الأول: استدعاء دالة
             List<TerminalNode> identifiers = ctx.IDENTIFIER();
             if (identifiers.size() >= 1) {
-                // كل ما قبل الأخير هو objectName (إذا وُجد أكثر من واحد)
                 objectName = identifiers.get(0).getText();
                 if (identifiers.size() >= 2) {
                     methodName = identifiers.get(identifiers.size() - 1).getText();
                 }
             }
             symbolTable.add(methodName, "method_call");
-            // زيارة الـ arguments
             if (ctx.arguments() != null) {
                 for (AngularParser.ExpressionContext exprCtx : ctx.arguments().expression()) {
                     ExpressionSt expr = (ExpressionSt) visitExpression(exprCtx);
@@ -53,13 +49,12 @@ public class StatmentVisitor extends AngularParserBaseVisitor<Statement> {
             }
 
         } else {
-            // النوع الثاني: عملية إسناد
             if (!ctx.IDENTIFIER().isEmpty()) {
                 objectName = ctx.IDENTIFIER(0).getText();
                 symbolTable.add(objectName, "object_assignment");
             }
 
-            // زيارة any_type*
+
             for (AngularParser.Any_typeContext anyCtx : ctx.any_type()) {
                 ANYTYPE2 type = (ANYTYPE2) visitAny_type(anyCtx);
                 anytypes.add(type);
@@ -80,13 +75,11 @@ public class StatmentVisitor extends AngularParserBaseVisitor<Statement> {
         AST.ExpressionSt value = null;
         List<ANYTYPE2> anytypes = new ArrayList<>();
 
-        // استخراج أسماء المتغيرات في الطرف الأيسر (IDENTIFIER*)
         for (TerminalNode id : ctx.IDENTIFIER()) {
             target.add(id.getText());
             symbolTable.add(id.getText(), "variable");
         }
 
-        // التحقق إذا كانت القيمة من نوع expression أو any_type
         if (ctx.expression() != null) {
             value = (ExpressionSt) visitExpression(ctx.expression());
         }
@@ -117,7 +110,7 @@ public class StatmentVisitor extends AngularParserBaseVisitor<Statement> {
             ifBody.add(statmentVisitor.visit(ctx.statement().get(i)));
         }
 
-        // else-body (اختياري)
+        // else-body
         List<AST.Statement> elseBody = new ArrayList<>();
         if (ctx.ELSE_CONDITION() != null && ctx.statement().size() > 1) {
             for (int i = 0 ; i < ctx.statement().size();i++) {
@@ -290,8 +283,11 @@ public class StatmentVisitor extends AngularParserBaseVisitor<Statement> {
             symbolTable.add(ctx.COLOR().getText(), "color");
             return new ANYTYPE2(AnyType.Type.COLOR, ctx.getText());
         } else if (ctx.IDENTIFIER() != null) {
-            symbolTable.add(ctx.IDENTIFIER().getText(), "identifier");
-            return new ANYTYPE2(AnyType.Type.IDENTIFIER, ctx.getText());
+            String name = ctx.IDENTIFIER(0).getText();
+            String value = (ctx.IDENTIFIER().size() > 1) ? ctx.IDENTIFIER(1).getText() : "anyType";
+
+            symbolTable.add(name, "Anytype", value);
+            return new ANYTYPE2(AnyType.Type.IDENTIFIER, name);
         } else if (ctx.NUMBER() != null) {
             symbolTable.add(ctx.NUMBER().getText(), "number");
             return new ANYTYPE2(AnyType.Type.NUMBER, ctx.getText());

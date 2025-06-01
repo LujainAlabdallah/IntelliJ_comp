@@ -13,7 +13,7 @@ public class ElementContantVisitor extends AngularParserBaseVisitor<ElementConte
     @Override
     public ElementContent visitSTRING(AngularParser.STRINGContext ctx) {
         String rawText = ctx.STRING().getText();
-        String cleanText = rawText.substring(1, rawText.length() - 1); // إزالة علامات " "
+        String cleanText = rawText.substring(1, rawText.length() - 1);
         symbolTable.add(cleanText, "element_string");
         return new StringContent(cleanText);
     }

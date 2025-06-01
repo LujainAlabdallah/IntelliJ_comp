@@ -1,6 +1,7 @@
 package Visitor;
 
 import AST.*;
+import SemanticError.DuplicateChecker;
 import antlr.AngularParser;
 import antlr.AngularParserBaseVisitor;
 import symboltable.SymbolTable;
@@ -18,14 +19,20 @@ public class MetadataVisitor extends AngularParserBaseVisitor<ComponentMetadata>
     @Override
     public ComponentMetadata visitSELECTOR1(AngularParser.SELECTOR1Context ctx) {
         String value = ctx.STRING().getText().replace("\"", "");
+        DuplicateChecker duplicateChecker = new DuplicateChecker(symbolTable);
+      if (! duplicateChecker.check("selector")){
         symbolTable.add("selector", "component_metadata", value);
+      }
         return new SELECTOR1(value);
     }
 
     @Override
     public ComponentMetadata visitSTANDLONE(AngularParser.STANDLONEContext ctx) {
         boolean value = Boolean.parseBoolean(ctx.BOOLEAN().getText());
-        symbolTable.add("standalone", "component_metadata", String.valueOf(value));
+        DuplicateChecker duplicateChecker = new DuplicateChecker(symbolTable);
+        if (! duplicateChecker.check("standalone")) {
+            symbolTable.add("standalone", "component_metadata", String.valueOf(value));
+        }
         return new StandaloneMetadata(value);
     }
 
@@ -64,8 +71,9 @@ public class MetadataVisitor extends AngularParserBaseVisitor<ComponentMetadata>
         List<String> imports = new ArrayList<>();
         ctx.IDENTIFIER().forEach(id -> {
             imports.add(id.getText());
-            symbolTable.add(id.getText(), "import");
-        });        return new ImportsMetadata(imports);
+         symbolTable.add(id.getText(), "import");
+        });
+        return new ImportsMetadata(imports);
     }
 
     @Override
@@ -73,7 +81,7 @@ public class MetadataVisitor extends AngularParserBaseVisitor<ComponentMetadata>
         StyleValue styleVal;
         if (ctx.style().STRING() != null) {
             String path = ctx.style().STRING().getText().replace("\"", "");
-            symbolTable.add("styleUrl", "string_path", path);
+         //   symbolTable.add("styleUrl", "string_path", path);
             styleVal = new StyleString(path);
         } else {
             List<Rule> rules = new ArrayList<>();
@@ -103,7 +111,7 @@ public class MetadataVisitor extends AngularParserBaseVisitor<ComponentMetadata>
                 .map(id -> id.getText())
                 .collect(Collectors.toList());
         for (String id : identifiers) {
-            symbolTable.add(id, "css_selector");
+          //  symbolTable.add(id, "css_selector");
         }
 
         return new selector(identifiers);
@@ -127,28 +135,27 @@ public class MetadataVisitor extends AngularParserBaseVisitor<ComponentMetadata>
             }
         }
         for (String id : identifiers) {
-            symbolTable.add(id, "css_declaration");
+           // symbolTable.add(id, "css_declaration");
         }
-        // إرجاع كائن يمثل declaration
         return new Declaration(identifiers, value);
     }
 
     @Override
     public ComponentMetadata visitAny_type(AngularParser.Any_typeContext ctx) {
         if (ctx.LENGTH() != null) {
-            symbolTable.add(ctx.getText(), "length_value");
+        //    symbolTable.add(ctx.getText(), "length_value");
             return new AnyType(AnyType.Type.LENGTH, ctx.getText());
         } else if (ctx.COLOR() != null) {
-            symbolTable.add(ctx.getText(), "color_value");
+          //  symbolTable.add(ctx.getText(), "color_value");
             return new AnyType(AnyType.Type.COLOR, ctx.getText());
         } else if (ctx.IDENTIFIER() != null) {
-            symbolTable.add(ctx.getText(), "identifier_value");
+         //   symbolTable.add(ctx.getText(), "identifier_value");
             return new AnyType(AnyType.Type.IDENTIFIER, ctx.getText());
         } else if (ctx.NUMBER() != null) {
-            symbolTable.add(ctx.getText(), "number_value");
+          //  symbolTable.add(ctx.getText(), "number_value");
             return new AnyType(AnyType.Type.NUMBER, ctx.getText());
         } else if (ctx.STRING() != null) {
-            symbolTable.add(ctx.getText(), "string_value");
+      //      symbolTable.add(ctx.getText(), "string_value");
             return new AnyType(AnyType.Type.STRING, ctx.getText());
         } else if (ctx.ANY() != null) {
             symbolTable.add(ctx.getText(), "any_type");

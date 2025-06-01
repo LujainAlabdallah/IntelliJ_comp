@@ -1,8 +1,11 @@
 package Visitor;
 
 import AST.*;
+import SemanticError.NgForSemanticChecker;
+import SemanticError.SemanticErrorReporter;
 import antlr.AngularParser;
 import antlr.AngularParserBaseVisitor;
+import org.antlr.v4.runtime.Token;
 import symboltable.*;
 
 import java.util.ArrayList;
@@ -12,7 +15,6 @@ import java.util.stream.Collectors;
 
 public class ElementVisitor extends AngularParserBaseVisitor<Element> {
     private SymbolTable symbolTable;
-
     public ElementVisitor(SymbolTable symbolTable) {
         this.symbolTable = symbolTable;
     }
@@ -25,12 +27,6 @@ public class ElementVisitor extends AngularParserBaseVisitor<Element> {
         for (AngularParser.AttributeContext attrCtx : ctx.attribute()) {
             Attribute attribute = attributeVisitor.visit(attrCtx);
             attributes.add(attribute);
-//            if (attribute != null) {
-//                System.out.println("Visited attribute: " + attribute);
-//                attributes.add(attribute);
-//            } else {
-//                System.err.println("Null attribute returned for: " + attrCtx.getText());
-//            }
             attributes1.setAttributes(attributes);
         }
 
@@ -58,11 +54,7 @@ public class ElementVisitor extends AngularParserBaseVisitor<Element> {
             symbolTable.add("image_attr", attrs.toString());
 
             if (attrs != null) {
-            //    System.out.println("Visited attributes:");
                 for (Attribute attr : attrs.getAttributes()) {
-                 //  symbolTable.add(attr.getName(), "image_attr", attr.getValue());
-
-                    //      System.out.println(attr);
                 }
             } else {
                 System.err.println("visitAttributes returned null.");
@@ -108,6 +100,8 @@ public class ElementVisitor extends AngularParserBaseVisitor<Element> {
             // Case: NGFOR DIV
             String ngForValue = ctx.STRING().getText();
             symbolTable.add("ngFor", "directive", ngForValue);
+            NgForSemanticChecker ngForSemanticChecker = new NgForSemanticChecker(symbolTable);
+            ngForSemanticChecker.check(ngForValue);
             ElementContantVisitor elementContantVisitor = new ElementContantVisitor(symbolTable);
             ElementContent content = elementContantVisitor.visit(ctx.elementContent());
             return new componentElement(ngForValue, content);
@@ -148,7 +142,10 @@ public class ElementVisitor extends AngularParserBaseVisitor<Element> {
 
     @Override
     public Element visitNgForElement(AngularParser.NgForElementContext ctx) {
-        String expr = ctx.STRING().getText().replace("\"", "");
+        String expr = ctx.STRING().getText();
+        System.out.println(expr+"vdifvfdnvoifdnvoinfoivn");
+        NgForSemanticChecker ngForSemanticChecker = new NgForSemanticChecker(symbolTable);
+        ngForSemanticChecker.check(expr);
         symbolTable.add("ngFor", "directive", expr);
         ElementContent content = null;
         ElementContantVisitor elementContantVisitor = new ElementContantVisitor(symbolTable);
