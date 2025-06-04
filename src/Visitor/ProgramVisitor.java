@@ -59,12 +59,11 @@ public class ProgramVisitor extends AngularParserBaseVisitor<ProgramAll> {
 
         for (AngularParser.Component_metadataContext metaCtx : ctx.component_metadata()) {
             ComponentMetadata metadata = metadataVisitor.visit(metaCtx);
-            // System.out.println(metadata.toString()); // طباعة المحتوى
+            // System.out.println(metadata.toString());
 
-            componentMetadataList.add(metadata);    // تخزينه في القائمة
+            componentMetadataList.add(metadata);
         }
 
-        // حفظ القائمة داخل كائن componentDeclaration (إذا كان فيه setter أو add)
         componentDeclaration.setComponentMetadata(componentMetadataList); // أو استخدم addMeta()
 
         return componentDeclaration;
@@ -170,7 +169,7 @@ public class ProgramVisitor extends AngularParserBaseVisitor<ProgramAll> {
 
     @Override
     public ProgramAll visitMethodCall(AngularParser.MethodCallContext ctx) {
-        String objectName = "this"; // بما أن البداية THIS_KEYWORD
+        String objectName = "this";
         String methodName = "";
         List<Expression> arguments = new ArrayList<>();
         List<AnyType> anytypes = new ArrayList<>();
@@ -178,19 +177,15 @@ public class ProgramVisitor extends AngularParserBaseVisitor<ProgramAll> {
             String obj = ctx.IDENTIFIER(0).getText();
             symbolTable.add(obj, "object");
         }
-        // نميز بين النوعين باستخدام وجود LEFT_PAREN (أي استدعاء دالة)
         if (ctx.LEFT_PAREN() != null) {
-            // النوع الأول: استدعاء دالة
             List<TerminalNode> identifiers = ctx.IDENTIFIER();
             if (identifiers.size() >= 1) {
-                // كل ما قبل الأخير هو objectName (إذا وُجد أكثر من واحد)
                 objectName = identifiers.get(0).getText();
                 if (identifiers.size() >= 2) {
                     methodName = identifiers.get(identifiers.size() - 1).getText();
                 }
             }
 
-            // زيارة الـ arguments
             if (ctx.arguments() != null) {
                 for (AngularParser.ExpressionContext exprCtx : ctx.arguments().expression()) {
                     Expression expr = (Expression) visitExpression(exprCtx);
@@ -199,12 +194,10 @@ public class ProgramVisitor extends AngularParserBaseVisitor<ProgramAll> {
             }
 
         } else {
-            // النوع الثاني: عملية إسناد
             if (!ctx.IDENTIFIER().isEmpty()) {
                 objectName = ctx.IDENTIFIER(0).getText();
             }
 
-            // زيارة any_type*
             for (AngularParser.Any_typeContext anyCtx : ctx.any_type()) {
                 AnyType type = (AnyType) visitAny_type(anyCtx);
                 anytypes.add(type);
@@ -248,9 +241,7 @@ public class ProgramVisitor extends AngularParserBaseVisitor<ProgramAll> {
             ReservedWords reservedWords = new ReservedWords();
             String newValue = String.valueOf(value != null ? value : anytypes);
             if (!reservedWords.isReserved(varName)) {
-                // إذا لم يكن المتغير undefined
                 if (!undefinedVariableChecker.check(varName)) {
-                    // تحقق من وجود تعارض بالقيمة
                     if (!conflictChecker.check(varName, newValue)) {
                         symbolTable.add(varName, "variable", newValue);
                     }
@@ -295,16 +286,13 @@ public class ProgramVisitor extends AngularParserBaseVisitor<ProgramAll> {
             symbolTable.add(functionCallName, "function_call");
         }
 
-        // الحالة الأولى: استدعاء دالة
         if (ctx.arguments() != null) {
-            // نأخذ اسم الدالة من IDENTIFIER*
             if (!ctx.IDENTIFIER().isEmpty()) {
                 functionName = ctx.IDENTIFIER().stream()
                         .map(TerminalNode::getText)
                         .collect(Collectors.joining("."));
             }
 
-            // زيارة جميع الـ arguments
             if (ctx.arguments() != null) {
                 for (AngularParser.ExpressionContext exprCtx : ctx.arguments().expression()) {
                     Expression expr = (Expression) visitExpression(exprCtx);
@@ -312,7 +300,6 @@ public class ProgramVisitor extends AngularParserBaseVisitor<ProgramAll> {
                 }
             }
 
-            // الحالة الثانية: any_type
             if (ctx.any_type() != null) {
                 anytype = (AnyType) visitAny_type(ctx.any_type());
             }
@@ -395,26 +382,22 @@ if (!reservedWords.isReserved(name)){
         List<TerminalNode> numbers = ctx.NUMBER();
         List<TerminalNode> strings = ctx.STRING();
 
-        // استخراج المفاتيح
         List<String> firstKey = new ArrayList<>();
         List<String> secondKey = new ArrayList<>();
         List<String> thirdKey = new ArrayList<>();
 
-        // تقسيم IDENTIFIER* حسب ترتيبهم في القاعدة
         int idSize = identifiers.size();
         if (idSize >= 3) {
             firstKey.add(identifiers.get(0).getText());
             secondKey.add(identifiers.get(1).getText());
             thirdKey.add(identifiers.get(2).getText());
         } else {
-            // في حال وجود أكثر من IDENTIFIER لكل مفتاح
             int splitSize = idSize / 3;
             for (int i = 0; i < splitSize; i++) firstKey.add(identifiers.get(i).getText());
             for (int i = splitSize; i < 2 * splitSize; i++) secondKey.add(identifiers.get(i).getText());
             for (int i = 2 * splitSize; i < idSize; i++) thirdKey.add(identifiers.get(i).getText());
         }
 
-        // استخراج القيم
         String firstValue = numbers.isEmpty() ? "" : numbers.get(0).getText();
         String secondValue = strings.size() >= 1 ? strings.get(0).getText().replaceAll("\"", "") : "";
         String thirdValue = strings.size() >= 2 ? strings.get(1).getText().replaceAll("\"", "") : "";
@@ -434,13 +417,11 @@ if (!reservedWords.isReserved(name)){
         Expression condition = (Expression) visitExpression(ctx.expression());
         StatmentVisitor statmentVisitor = new StatmentVisitor(symbolTable);
 
-        // if-body
         List<AST.Statement> ifBody = new ArrayList<>();
         for (int i = 0; i < ctx.statement().size(); i++) {
             ifBody.add(statmentVisitor.visit(ctx.statement().get(i)));
         }
 
-        // else-body (اختياري)
         List<AST.Statement> elseBody = new ArrayList<>();
         if (ctx.ELSE_CONDITION() != null && ctx.statement().size() > 1) {
             for (int i = 0; i < ctx.statement().size(); i++) {

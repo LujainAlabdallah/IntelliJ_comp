@@ -71,7 +71,7 @@ public class MetadataVisitor extends AngularParserBaseVisitor<ComponentMetadata>
         List<String> imports = new ArrayList<>();
         ctx.IDENTIFIER().forEach(id -> {
             imports.add(id.getText());
-         symbolTable.add(id.getText(), "import");
+      //   symbolTable.add(id.getText(), "import");
         });
         return new ImportsMetadata(imports);
     }

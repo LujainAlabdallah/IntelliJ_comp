@@ -1,4 +1,4 @@
-import { Componentt} from '@angular/core';
+import { Componentt } from '@angular/core';
 import { ProductComponent } from '../../components/product/product.component';
 import { ProductDetailsComponent } from '../../components/product-details/product-details.component';
 import { CommonModule } from '@angular/common';
@@ -6,25 +6,26 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-home',
   standalone: true,
+  standalone: true,
   imports: [ProductComponent, ProductDetailsComponent, CommonModule],
-  templateUrl:
-  <div class="card">
-  <h1> {{ product!.name??"" }} </h1>
-
-  <p>{{product!.details??""}}</p>
-</div>
-  ,
-  styleUrl:
+ templateUrl:
+ <div *ngFor= " product of products">
+       laith
+     </div>,
+styleUrl:
   card {
   max-width: 300px;
   margin: "auto";
   text-align: "center";
   font-family: "arial";
   font-size: "large";
-}
-,
+},
 })
+export class HomeComponent {
+   @Input({ required: true }) product!: any;
 
-
-
-
+   @Output() action: EventEmitter<any> = new EventEmitter();
+   laith(){
+   return 7 ;
+   }
+  }
